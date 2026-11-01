@@ -4,7 +4,9 @@ Maintainer and support: info@scantitan.com. Never send credentials or private sc
 
 Scan a selected, verified website and fail a deployment when findings meet a severity threshold or coverage is incomplete. The action scans a deployed website, not repository source code.
 
-In ScanTitan, add and verify your website, select a plan, then create a **GitHub** credential in **Account & plan → Connected apps** with assets:read, scans:read and scans:run. Save it as a GitHub Actions secret.
+Connected apps and integrations require an active **Business or Consultant** ScanTitan plan. Free and Professional plans do not include connected-app access. Installing this connector is free; scans follow the plan allowance. Consultant does not include ongoing monitoring.
+
+In ScanTitan, add and verify your website, select Business or Consultant, then create a **GitHub** credential in **Account & plan → Connected apps** with assets:read, scans:read and scans:run. Save it as a GitHub Actions secret.
 
 After deployment, use the public Action pinned to its tested commit:
 
