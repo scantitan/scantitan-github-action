@@ -1,0 +1,47 @@
+name: ScanTitan Website Security
+description: Scan a verified website and gate deployments on security findings and coverage
+author: ScanTitan <info@scantitan.com>
+branding:
+  icon: shield
+  color: blue
+inputs:
+  api-token:
+    description: GitHub connected-app credential stored in a GitHub secret
+    required: true
+  asset-id:
+    description: Selected and verified ScanTitan website ID
+    required: true
+  api-url:
+    description: HTTPS integration API base URL
+    default: https://portal.scantitan.com/api/v2/integrations/apps
+  idempotency-key:
+    description: Retry key; defaults to repository, run ID, attempt and job
+  timeout-seconds:
+    description: Maximum time to wait for results
+    default: '900'
+  poll-seconds:
+    description: Poll interval in seconds, at least 5
+    default: '15'
+  fail-on:
+    description: Minimum severity that fails the job (critical, high, medium, low, info, none)
+    default: high
+  fail-on-incomplete:
+    description: Fail when checks did not complete or results are simulated
+    default: 'true'
+outputs:
+  scan-id:
+    description: ScanTitan scan ID
+  status:
+    description: Terminal scan status
+  report-url:
+    description: Authenticated report link
+  findings-count:
+    description: Number of findings
+  report-path:
+    description: Local JSON report file for actions/upload-artifact
+  coverage-complete:
+    description: Whether selected checks completed with real results
+runs:
+  using: node24
+  main: index.cjs
+

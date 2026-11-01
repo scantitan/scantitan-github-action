@@ -1,0 +1,22 @@
+{
+  "name": "scantitan-github-action",
+  "version": "0.1.3",
+  "author": {
+    "name": "ScanTitan",
+    "email": "info@scantitan.com"
+  },
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.cjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scantitan/scantitan-github-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/scantitan/scantitan-github-action/issues"
+  }
+}
