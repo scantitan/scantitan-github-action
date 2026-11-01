@@ -6,10 +6,10 @@ Scan a selected, verified website and fail a deployment when findings meet a sev
 
 In ScanTitan, add and verify your website, select a plan, then create a **GitHub** credential in **Account & plan → Connected apps** with assets:read, scans:read and scans:run. Save it as a GitHub Actions secret.
 
-After checking out this repository, use:
+After deployment, use the public Action pinned to its tested commit:
 
 ```yaml
-- uses: scantitan/scantitan-github-action@v0.1.3
+- uses: scantitan/scantitan-github-action@5a97f66a765ed242167713e93125f38d14b3a5d0
   id: scantitan
   with:
     api-token: ${{ secrets.SCANTITAN_API_TOKEN }}
@@ -18,7 +18,7 @@ After checking out this repository, use:
     fail-on-incomplete: 'true'
 ```
 
-Run this after deployment to a reachable, verified staging or production website. A Marketplace listing is available only after publishing the release. For production, pin the released action to its full commit SHA.
+Run this after deployment to a reachable, verified staging or production website. Public source: https://github.com/scantitan/scantitan-github-action. Marketplace publication is tracked separately from source availability. Use a reviewed full commit SHA in production workflows.
 
 Scan limits follow your plan. The default retry key includes repository, workflow run, attempt and job. Repeated requests within an attempt reuse a scan; a new attempt can consume another scan. Set idempotency-key to a deployment identifier for reuse across attempts. Use a separate key for each website.
 
