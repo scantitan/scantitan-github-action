@@ -1,0 +1,59 @@
+name: Verify action
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm test
+      - name: Start private HTTPS fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj '/CN=localhost' \
+            -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' \
+            -keyout "$RUNNER_TEMP/fixture-key.pem" -out "$RUNNER_TEMP/fixture-cert.pem"
+          SCANTITAN_FIXTURE_KEY="$RUNNER_TEMP/fixture-key.pem" SCANTITAN_FIXTURE_CERT="$RUNNER_TEMP/fixture-cert.pem" \
+            node test/https-fixture.cjs >"$RUNNER_TEMP/scantitan-fixture.log" 2>&1 &
+          echo $! >"$RUNNER_TEMP/scantitan-fixture.pid"
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail --cacert "$RUNNER_TEMP/fixture-cert.pem" https://127.0.0.1:18089/health; then exit 0; fi
+            sleep 0.5
+          done
+          exit 1
+      - name: Exercise actual action with synthetic incomplete coverage
+        id: fixture_scan
+        continue-on-error: true
+        uses: ./
+        env:
+          NODE_EXTRA_CA_CERTS: ${{ runner.temp }}/fixture-cert.pem
+        with:
+          api-url: https://127.0.0.1:18089/api/v2/integrations/apps
+          api-token: sti_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          asset-id: fixture-site
+          timeout-seconds: '30'
+          poll-seconds: '5'
+      - name: Verify gate and report
+        env:
+          FIXTURE_OUTCOME: ${{ steps.fixture_scan.outcome }}
+          REPORT_PATH: ${{ steps.fixture_scan.outputs.report-path }}
+        run: |
+          node -e "const fs=require('node:fs'); if(process.env.FIXTURE_OUTCOME!=='failure') throw new Error('Expected coverage gate failure'); const r=JSON.parse(fs.readFileSync(process.env.REPORT_PATH,'utf8')); if(r.scan.demo!==true || r.findings.length!==2 || !r.gate_failure.includes('real results')) throw new Error('Unexpected fixture report');"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always() && steps.fixture_scan.outputs.report-path != ''
+        with:
+          name: scantitan-synthetic-fixture-report
+          path: ${{ steps.fixture_scan.outputs.report-path }}
+          retention-days: 7
